@@ -5,26 +5,32 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { register } = useAuth();
 
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [remember, setRemember] = useState(false);
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+
+    if (password !== passwordConfirmation) {
+      setError("Passwords do not match.");
+      return;
+    }
+
     setLoading(true);
     try {
-      await login(email, password, remember);
+      await register(name, email, password, passwordConfirmation);
       router.push("/dashboard");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed.");
+      setError(err instanceof Error ? err.message : "Registration failed.");
     } finally {
       setLoading(false);
     }
@@ -38,15 +44,34 @@ export default function LoginPage() {
             P
           </div>
           <h1 className="mt-4 text-3xl font-bold text-gray-900">
-            Welcome back
+            Create your account
           </h1>
           <p className="mt-1 text-sm text-gray-600">
-            Sign in to your Property Management account
+            Start managing properties in minutes
           </p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700 mb-1.5"
+              >
+                Full name
+              </label>
+              <input
+                id="name"
+                type="text"
+                autoComplete="name"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Jane Doe"
+                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none transition text-gray-900 placeholder-gray-400"
+              />
+            </div>
+
             <div>
               <label
                 htmlFor="email"
@@ -67,50 +92,44 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Password
-                </label>
-                <Link
-                  href="/forgot-password"
-                  className="text-sm font-medium text-brand-600 hover:text-brand-700"
-                >
-                  Forgot?
-                </Link>
-              </div>
-              <div className="relative">
-                <input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full px-4 py-2.5 pr-20 rounded-lg border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none transition text-gray-900 placeholder-gray-400"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((s) => !s)}
-                  className="absolute inset-y-0 right-0 px-3 text-sm font-medium text-gray-500 hover:text-gray-700"
-                >
-                  {showPassword ? "Hide" : "Show"}
-                </button>
-              </div>
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-1.5"
+              >
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                autoComplete="new-password"
+                required
+                minLength={8}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="At least 8 characters"
+                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none transition text-gray-900 placeholder-gray-400"
+              />
             </div>
 
-            <label className="flex items-center gap-2 select-none">
+            <div>
+              <label
+                htmlFor="password_confirmation"
+                className="block text-sm font-medium text-gray-700 mb-1.5"
+              >
+                Confirm password
+              </label>
               <input
-                type="checkbox"
-                checked={remember}
-                onChange={(e) => setRemember(e.target.checked)}
-                className="w-4 h-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+                id="password_confirmation"
+                type="password"
+                autoComplete="new-password"
+                required
+                minLength={8}
+                value={passwordConfirmation}
+                onChange={(e) => setPasswordConfirmation(e.target.value)}
+                placeholder="Repeat your password"
+                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none transition text-gray-900 placeholder-gray-400"
               />
-              <span className="text-sm text-gray-700">Remember me</span>
-            </label>
+            </div>
 
             {error && (
               <div
@@ -126,18 +145,18 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full py-2.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white font-semibold transition shadow-md shadow-brand-600/20 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {loading ? "Signing in…" : "Sign in"}
+              {loading ? "Creating account…" : "Create account"}
             </button>
           </form>
 
           <div className="mt-6 pt-6 border-t border-gray-100 text-center">
             <p className="text-sm text-gray-600">
-              Don&apos;t have an account?{" "}
+              Already have an account?{" "}
               <Link
-                href="/register"
+                href="/login"
                 className="font-semibold text-brand-600 hover:text-brand-700"
               >
-                Create one
+                Sign in
               </Link>
             </p>
           </div>

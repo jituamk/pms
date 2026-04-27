@@ -1,44 +1,48 @@
-# PMS Backend (Laravel)
+# PMS Backend (Laravel 11)
 
 REST API for the Property Management System.
 
-## Initialize the Laravel project
-
-This folder contains starter route + controller stubs. To turn it into a working Laravel app, generate a fresh Laravel 11 project here and copy the stubs in:
-
-```bash
-# from the repo root
-composer create-project laravel/laravel backend-tmp
-mv backend-tmp/* backend-tmp/.* backend/ 2>/dev/null || true
-rm -rf backend-tmp
-
-# install Sanctum for API auth
-cd backend
-composer require laravel/sanctum
-php artisan vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider"
-php artisan migrate
-```
-
-Then merge the provided stubs:
-
-- `routes/api.php` — login/logout/me routes
-- `app/Http/Controllers/AuthController.php` — login handler
-
-## Run
+## Setup
 
 ```bash
 cp .env.example .env
+composer install
 php artisan key:generate
-php artisan migrate
+
+# SQLite (default in .env.example)
+touch database/database.sqlite
+
+php artisan migrate --seed
 php artisan serve
 ```
 
 API runs at http://localhost:8000.
 
+A seeded admin user is created:
+
+- **Email:** `admin@pms.test`
+- **Password:** `password`
+
 ## Endpoints
 
-| Method | Path | Description |
-|---|---|---|
-| POST | `/api/auth/login` | Email + password login, returns Sanctum token |
-| POST | `/api/auth/logout` | Revoke current token (auth required) |
-| GET  | `/api/auth/me` | Current user (auth required) |
+### Auth
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| POST | `/api/auth/register` | No  | Create user, returns Sanctum token |
+| POST | `/api/auth/login`    | No  | Login, returns Sanctum token |
+| POST | `/api/auth/logout`   | Yes | Revoke current token |
+| GET  | `/api/auth/me`       | Yes | Current user |
+
+### Properties (`/api/properties`)
+Full REST resource: `index`, `store`, `show`, `update`, `destroy`.
+
+### Tenants (`/api/tenants`)
+Full REST resource: `index`, `store`, `show`, `update`, `destroy`.
+
+All resource routes require `Authorization: Bearer <token>`.
+
+## Stack
+
+- Laravel 11
+- Sanctum (token-based API auth)
+- SQLite by default (switchable in `.env`)

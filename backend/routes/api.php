@@ -1,20 +1,12 @@
 <?php
 
 use App\Http\Controllers\AuthController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\PropertyController;
+use App\Http\Controllers\TenantController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Routes here are loaded by the RouteServiceProvider and assigned to the
-| "api" middleware group. All routes are prefixed with /api.
-|
-*/
-
 Route::prefix('auth')->group(function () {
+    Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
 
     Route::middleware('auth:sanctum')->group(function () {
@@ -23,6 +15,7 @@ Route::prefix('auth')->group(function () {
     });
 });
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::middleware('auth:sanctum')->group(function () {
+    Route::apiResource('properties', PropertyController::class);
+    Route::apiResource('tenants', TenantController::class);
 });
