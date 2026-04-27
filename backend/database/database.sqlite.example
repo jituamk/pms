@@ -1,2 +1,0 @@
-Rename this file to `database.sqlite` (or run `touch database/database.sqlite`)
-before running `php artisan migrate` when DB_CONNECTION=sqlite.

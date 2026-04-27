@@ -2,29 +2,29 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Tenant extends Model
 {
-    use HasFactory;
+    use SoftDeletes;
 
     protected $fillable = [
-        'name',
-        'email',
-        'phone',
-        'property_id',
-        'move_in_date',
-        'status',
+        'owner_id', 'user_id', 'full_name', 'phone', 'email',
+        'nid_number', 'nid_image_path', 'photo_path',
+        'occupation', 'emergency_contact_name', 'emergency_contact_phone',
+        'permanent_address', 'family_members_count', 'notes',
     ];
 
-    protected $casts = [
-        'move_in_date' => 'date',
-    ];
+    public function owner(): BelongsTo  { return $this->belongsTo(User::class, 'owner_id'); }
+    public function user(): BelongsTo   { return $this->belongsTo(User::class, 'user_id'); }
+    public function leases(): HasMany   { return $this->hasMany(Lease::class); }
+    public function payments(): HasMany { return $this->hasMany(Payment::class); }
 
-    public function property(): BelongsTo
+    public function activeLease()
     {
-        return $this->belongsTo(Property::class);
+        return $this->hasOne(Lease::class)->where('status', 'active');
     }
 }
