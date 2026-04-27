@@ -35,6 +35,7 @@ class Flat extends Model
     public function floor(): BelongsTo    { return $this->belongsTo(Floor::class); }
     public function rooms(): HasMany      { return $this->hasMany(Room::class); }
     public function leases(): HasMany     { return $this->hasMany(Lease::class); }
+    public function assets(): HasMany     { return $this->hasMany(RoomAsset::class); }
 
     public function activeLease()
     {

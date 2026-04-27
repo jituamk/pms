@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { AppShell } from '@/components/app-shell';
 import { AuthGuard } from '@/components/auth-guard';
 import { Card } from '@/components/ui';
@@ -97,11 +98,37 @@ function Stat({ label, value, hint, tone = 'gray' }: { label: string; value: Rea
   );
 }
 
+function PendingAckBanner() {
+  const [ack, setAck] = useState<{ id: number; status: string } | null>(null);
+  useEffect(() => {
+    api.get<{ id: number; status: string }[]>('/acknowledgements')
+      .then((rs) => {
+        const pending = rs.find((r) => r.status === 'pending' || r.status === 'partial');
+        if (pending) setAck(pending);
+      })
+      .catch(() => {});
+  }, []);
+  if (!ack) return null;
+  return (
+    <Card className="p-4 bg-amber-50 border-amber-200">
+      <div className="flex items-center justify-between gap-3">
+        <div className="text-sm text-amber-800">
+          <strong>Action required.</strong> Please review and acknowledge the assets in your flat.
+        </div>
+        <Link href={`/acknowledgements/${ack.id}`} className="rounded-md bg-amber-600 text-white text-sm px-3 py-1.5 hover:bg-amber-700">
+          Review now
+        </Link>
+      </div>
+    </Card>
+  );
+}
+
 function TenantDashboard({ data }: { data: unknown }) {
   const d = data as { tenant: { full_name: string }; lease?: { monthly_rent: string; start_date: string; flat: { flat_number: string; building: { name: string } } }; payments: Payment[] };
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">Hello, {d.tenant.full_name}</h1>
+      <PendingAckBanner />
       {d.lease ? (
         <Card className="p-4">
           <h2 className="font-semibold mb-2">Your lease</h2>

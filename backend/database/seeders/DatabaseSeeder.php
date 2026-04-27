@@ -2,10 +2,12 @@
 
 namespace Database\Seeders;
 
+use App\Models\AssetCategory;
 use App\Models\Building;
 use App\Models\Flat;
 use App\Models\Floor;
 use App\Models\RentPolicy;
+use App\Models\Room;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +17,18 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         DB::transaction(function () {
+
+            // Asset categories (master list — fixed)
+            $categories = [
+                ['key' => 'furniture',   'label' => 'Furniture',   'icon' => 'sofa',    'sort_order' => 1],
+                ['key' => 'electronics', 'label' => 'Electronics', 'icon' => 'plug',    'sort_order' => 2],
+                ['key' => 'fixtures',    'label' => 'Fixtures',    'icon' => 'lightbulb','sort_order' => 3],
+                ['key' => 'kitchen',     'label' => 'Kitchen',     'icon' => 'utensils','sort_order' => 4],
+                ['key' => 'other',       'label' => 'Other',       'icon' => 'box',     'sort_order' => 99],
+            ];
+            foreach ($categories as $c) {
+                AssetCategory::firstOrCreate(['key' => $c['key']], $c);
+            }
 
             // Super admin
             User::firstOrCreate(
@@ -79,7 +93,7 @@ class DatabaseSeeder extends Seeder
                     ['name' => $lvl === 0 ? 'Ground' : "{$lvl}" . ($lvl === 1 ? 'st' : ($lvl === 2 ? 'nd' : 'rd'))]
                 );
                 foreach (['A', 'B'] as $unit) {
-                    Flat::firstOrCreate(
+                    $flat = Flat::firstOrCreate(
                         ['building_id' => $building->id, 'flat_number' => "{$lvl}{$unit}"],
                         [
                             'floor_id'    => $floor->id,
@@ -92,6 +106,14 @@ class DatabaseSeeder extends Seeder
                             'status'      => 'vacant',
                         ]
                     );
+
+                    // Standard rooms per flat
+                    if ($flat->rooms()->count() === 0) {
+                        Room::create(['flat_id' => $flat->id, 'name' => 'Master Bedroom', 'type' => 'bedroom', 'size_sqft' => 180]);
+                        Room::create(['flat_id' => $flat->id, 'name' => 'Bedroom 2',      'type' => 'bedroom', 'size_sqft' => 140]);
+                        Room::create(['flat_id' => $flat->id, 'name' => 'Living Room',    'type' => 'living',  'size_sqft' => 220]);
+                        Room::create(['flat_id' => $flat->id, 'name' => 'Kitchen',        'type' => 'kitchen', 'size_sqft' => 80]);
+                    }
                 }
             }
         });

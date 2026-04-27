@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Building2, Home, Users, FileText, Wallet,
-  Settings, ClipboardCheck,
+  Settings, ClipboardCheck, Package, ShieldCheck, Search,
 } from 'lucide-react';
 import { useAuth, type Role } from '@/lib/auth-context';
 import { cn } from '@/lib/cn';
@@ -18,6 +18,9 @@ const NAV: NavItem[] = [
   { href: '/tenants',       label: 'Tenants',      icon: Users,           roles: ['owner','delegate','accountant'] },
   { href: '/leases',        label: 'Leases',       icon: FileText,        roles: ['owner','delegate','accountant'] },
   { href: '/payments',      label: 'Payments',     icon: Wallet,          roles: ['owner','delegate','accountant','tenant'] },
+  { href: '/assets',        label: 'Assets',       icon: Package,         roles: ['owner','delegate','accountant'] },
+  { href: '/acknowledgements', label: 'Acknowledgements', icon: ShieldCheck, roles: ['owner','delegate','tenant'] },
+  { href: '/inspections',   label: 'Inspections',  icon: Search,          roles: ['owner','delegate'] },
   { href: '/rent-policies', label: 'Rent Policies',icon: ClipboardCheck,  roles: ['owner','delegate'] },
   { href: '/settings',      label: 'Settings',     icon: Settings,        roles: ['super_admin','owner','delegate','accountant','caretaker','tenant'] },
 ];

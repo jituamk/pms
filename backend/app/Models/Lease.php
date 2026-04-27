@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -44,4 +45,7 @@ class Lease extends Model
     public function rentPolicy(): BelongsTo  { return $this->belongsTo(RentPolicy::class); }
     public function invoices(): HasMany      { return $this->hasMany(RentInvoice::class); }
     public function payments(): HasMany      { return $this->hasMany(Payment::class); }
+    public function acknowledgement(): HasOne { return $this->hasOne(AssetAcknowledgement::class); }
+    public function inspection(): HasOne     { return $this->hasOne(AssetInspection::class); }
+    public function depositDeductions(): HasMany { return $this->hasMany(DepositDeduction::class); }
 }

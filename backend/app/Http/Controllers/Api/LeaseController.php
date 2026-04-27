@@ -6,10 +6,12 @@ use App\Models\Flat;
 use App\Models\Lease;
 use App\Models\RentPolicy;
 use App\Models\Tenant;
+use App\Services\AssetAcknowledgementService;
 use App\Services\AuditService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class LeaseController extends Controller
 {
@@ -61,8 +63,15 @@ class LeaseController extends Controller
             return $lease;
         });
 
+        // Auto-generate the asset acknowledgement bundle for the tenant
+        try {
+            app(AssetAcknowledgementService::class)->generateForLease($lease);
+        } catch (\Throwable $e) {
+            Log::warning('Asset acknowledgement bundle generation failed', ['lease_id' => $lease->id, 'error' => $e->getMessage()]);
+        }
+
         AuditService::log('lease_create', $lease, $data);
-        return response()->json($lease->load(['tenant', 'flat.building', 'rentPolicy']), 201);
+        return response()->json($lease->load(['tenant', 'flat.building', 'rentPolicy', 'acknowledgement']), 201);
     }
 
     public function show(Request $request, Lease $lease)

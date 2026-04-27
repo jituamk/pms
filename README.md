@@ -53,8 +53,17 @@ Open http://localhost:3000 — installable as PWA on Android.
 - PWA offline queue
 - FCM push notifications scaffold
 
+## Features (Phase 2)
+
+- Per-room asset inventory across 5 categories (furniture, electronics, fixtures, kitchen, other)
+- Auto-generated tenant acknowledgement bundle on lease activation
+- Tenant checkbox + condition note per asset
+- Move-out inspection with damage charges + extra deductions
+- Automatic deposit refund calculation + deposit deduction ledger
+- New views: /assets, /acknowledgements, /inspections
+
 ## Roadmap
 
-- Phase 2: Asset catalog, audit, notice/vacating, settlement
 - Phase 3: Utility billing, sub-meter allocation, SMS auto-verification
-- Phase 4: Reports, Bengali localization, advanced delegation
+- Phase 4: Maintenance requests with photo + GPS check-in (3-day SLA)
+- Phase 5: PDF reports, Bengali localization, advanced delegation
