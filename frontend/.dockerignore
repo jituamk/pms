@@ -1,0 +1,11 @@
+node_modules/
+.next/
+out/
+.env
+.env.*
+!.env.local.example
+.git/
+.idea/
+.vscode/
+*.log
+README.md

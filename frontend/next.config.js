@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Enables a self-contained server bundle in .next/standalone for Docker.
+  output: 'standalone',
   async headers() {
     return [
       {

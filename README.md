@@ -16,7 +16,22 @@ Super_Admin · Owner · Delegate · Caretaker · Accountant · Tenant
 
 ## Quick start
 
-### Backend
+### Docker (recommended — zero-setup)
+
+```bash
+cp .env.docker.example .env
+docker compose up --build
+```
+
+- Frontend: http://localhost:3000
+- API: http://localhost:8000/api
+- Default logins: `admin@pms.test` / `password`, `owner@pms.test` / `password`
+
+See [DOCKER.md](DOCKER.md) for the full guide (services, env, common commands, troubleshooting).
+
+### Manual setup
+
+#### Backend
 
 ```bash
 cd backend
@@ -29,7 +44,7 @@ php artisan serve --port=8000
 
 Default super-admin: `admin@pms.test` / `password`
 
-### Frontend
+#### Frontend
 
 ```bash
 cd frontend
