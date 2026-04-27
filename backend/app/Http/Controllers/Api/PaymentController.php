@@ -8,6 +8,7 @@ use App\Models\PaymentProof;
 use App\Models\PaymentVerification;
 use App\Services\AuditService;
 use App\Services\NotificationService;
+use App\Services\SmsParserService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +16,7 @@ use Illuminate\Support\Str;
 
 class PaymentController extends Controller
 {
-    public function __construct(protected NotificationService $notif) {}
+    public function __construct(protected NotificationService $notif, protected SmsParserService $smsParser) {}
 
     public function index(Request $request)
     {
@@ -40,6 +41,7 @@ class PaymentController extends Controller
         $user = $request->user();
         $data = $request->validate([
             'lease_id'       => ['required', 'exists:leases,id'],
+            'invoice_id'     => ['nullable', 'exists:rent_invoices,id'],
             'amount'         => ['required', 'numeric', 'min:0.01'],
             'payment_date'   => ['required', 'date'],
             'method'         => ['required', 'in:cash,bank_transfer,bkash,rocket,nagad,cheque,other'],
@@ -97,6 +99,11 @@ class PaymentController extends Controller
 
         AuditService::log('payment_record', $payment, $data);
 
+        // Auto-match against any inbound SMS already in the inbox
+        if (in_array($payment->method, ['bkash', 'nagad', 'rocket']) && $payment->transaction_id) {
+            $this->smsParser->tryMatchPayment($payment->fresh('lease'));
+        }
+
         // Notify owner if a tenant submitted
         if ($user->isTenant()) {
             $owner = $lease->owner;
@@ -140,6 +147,10 @@ class PaymentController extends Controller
                 'verified_at' => now(),
             ]));
             $payment->update(['verification_status' => $data['result']]);
+            // If verified, recalc invoice balance to reflect this payment.
+            if (in_array($data['result'], ['verified', 'auto_verified'])) {
+                $payment->invoice?->recalcBalance();
+            }
         });
 
         AuditService::log('payment_verify', $payment, $data);

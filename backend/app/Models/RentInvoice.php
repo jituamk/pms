@@ -34,4 +34,18 @@ class RentInvoice extends Model
     public function lease(): BelongsTo    { return $this->belongsTo(Lease::class); }
     public function tenant(): BelongsTo   { return $this->belongsTo(Tenant::class); }
     public function payments(): HasMany   { return $this->hasMany(Payment::class, 'invoice_id'); }
+    public function lines(): HasMany      { return $this->hasMany(UtilityBillLine::class, 'invoice_id'); }
+
+    public function recalcBalance(): void
+    {
+        $paid    = (float) $this->payments()->whereIn('verification_status', ['verified', 'auto_verified'])->sum('amount');
+        $balance = max(0, (float) $this->total_amount - $paid);
+        $status  = match (true) {
+            $balance <= 0.001                                                       => 'paid',
+            $paid > 0 && $balance > 0                                               => 'partial',
+            $this->due_date && now()->startOfDay()->gt($this->due_date) && $balance > 0 => 'overdue',
+            default                                                                 => 'unpaid',
+        };
+        $this->update(['paid_amount' => $paid, 'balance_amount' => $balance, 'status' => $status]);
+    }
 }

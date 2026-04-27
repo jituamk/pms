@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Building2, Home, Users, FileText, Wallet,
   Settings, ClipboardCheck, Package, ShieldCheck, Search,
+  Zap, Gauge, Receipt, MessageSquare,
 } from 'lucide-react';
 import { useAuth, type Role } from '@/lib/auth-context';
 import { cn } from '@/lib/cn';
@@ -21,6 +22,10 @@ const NAV: NavItem[] = [
   { href: '/assets',        label: 'Assets',       icon: Package,         roles: ['owner','delegate','accountant'] },
   { href: '/acknowledgements', label: 'Acknowledgements', icon: ShieldCheck, roles: ['owner','delegate','tenant'] },
   { href: '/inspections',   label: 'Inspections',  icon: Search,          roles: ['owner','delegate'] },
+  { href: '/utilities',     label: 'Utilities',    icon: Zap,             roles: ['owner','delegate','accountant'] },
+  { href: '/utilities/readings', label: 'Meter Readings', icon: Gauge,    roles: ['owner','delegate','caretaker'] },
+  { href: '/bills',         label: 'Bills',        icon: Receipt,         roles: ['owner','delegate','accountant','tenant'] },
+  { href: '/sms-inbox',     label: 'SMS Inbox',    icon: MessageSquare,   roles: ['owner','delegate'] },
   { href: '/rent-policies', label: 'Rent Policies',icon: ClipboardCheck,  roles: ['owner','delegate'] },
   { href: '/settings',      label: 'Settings',     icon: Settings,        roles: ['super_admin','owner','delegate','accountant','caretaker','tenant'] },
 ];

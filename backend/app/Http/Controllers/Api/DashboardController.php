@@ -74,10 +74,18 @@ class DashboardController extends Controller
         $lease = $tenant->activeLease()->with('flat.building', 'rentPolicy')->first();
         $payments = Payment::where('tenant_id', $tenant->id)->latest('payment_date')->limit(10)->get();
 
+        // Outstanding unified bills (rent + utilities + late fee)
+        $bills = \App\Models\RentInvoice::where('tenant_id', $tenant->id)
+            ->whereIn('status', ['unpaid', 'partial', 'overdue'])
+            ->orderBy('billing_month')->get();
+        $totalDue = $bills->sum(fn($b) => (float) $b->balance_amount);
+
         return response()->json([
             'tenant'   => $tenant,
             'lease'    => $lease,
             'payments' => $payments,
+            'outstanding_bills' => $bills,
+            'total_due' => round($totalDue, 2),
         ]);
     }
 

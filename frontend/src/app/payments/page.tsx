@@ -17,6 +17,7 @@ interface Payment {
   proofs?: { id: number; file_path: string }[];
 }
 interface Lease { id: number; tenant?: { full_name: string }; flat?: { flat_number: string; building?: { name: string } }; monthly_rent: string }
+interface OutstandingBill { id: number; invoice_number: string; billing_month: string; balance_amount: string; lease?: { id: number } }
 
 const TONE: Record<string, 'green' | 'amber' | 'red' | 'gray' | 'blue'> = {
   verified: 'green', auto_verified: 'green',
@@ -79,6 +80,8 @@ function NewPaymentDialog({ onClose, onSaved }: { onClose: () => void; onSaved: 
   const { user } = useAuth();
   const [leases, setLeases]   = useState<Lease[]>([]);
   const [leaseId, setLeaseId] = useState('');
+  const [bills, setBills]     = useState<OutstandingBill[]>([]);
+  const [billId, setBillId]   = useState('');
   const [amount, setAmount]   = useState('');
   const [date, setDate]       = useState(() => new Date().toISOString().slice(0, 10));
   const [method, setMethod]   = useState<'cash' | 'bkash' | 'rocket' | 'nagad' | 'bank_transfer' | 'cheque' | 'other'>('cash');
@@ -97,12 +100,19 @@ function NewPaymentDialog({ onClose, onSaved }: { onClose: () => void; onSaved: 
     }
   }, [user]);
 
+  // Load outstanding bills when a lease is picked
+  useEffect(() => {
+    if (!leaseId) { setBills([]); setBillId(''); return; }
+    api.get<{ data: OutstandingBill[] }>(`/bills?lease_id=${leaseId}&status=unpaid`).then((r) => setBills(r.data ?? []));
+  }, [leaseId]);
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true); setErr(null);
     try {
       const fd = new FormData();
       fd.append('lease_id', leaseId);
+      if (billId) fd.append('invoice_id', billId);
       fd.append('amount', amount);
       fd.append('payment_date', date);
       fd.append('method', method);
@@ -126,6 +136,19 @@ function NewPaymentDialog({ onClose, onSaved }: { onClose: () => void; onSaved: 
               {leases.map((l) => <option key={l.id} value={l.id}>{l.tenant?.full_name} · {l.flat?.flat_number}</option>)}
             </select>
           </div>
+          {bills.length > 0 && (
+            <div>
+              <Label>Apply to bill (optional)</Label>
+              <select className="w-full rounded-md border px-3 py-2 text-sm" value={billId} onChange={(e) => {
+                setBillId(e.target.value);
+                const b = bills.find((x) => String(x.id) === e.target.value);
+                if (b) setAmount(b.balance_amount);
+              }}>
+                <option value="">Don&apos;t link</option>
+                {bills.map((b) => <option key={b.id} value={b.id}>{b.invoice_number} · balance ৳{b.balance_amount}</option>)}
+              </select>
+            </div>
+          )}
           <div><Label>Amount (BDT)</Label><Input required type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} /></div>
           <div><Label>Date</Label><Input required type="date" value={date} onChange={(e) => setDate(e.target.value)} /></div>
           <div>

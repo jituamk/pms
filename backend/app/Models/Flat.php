@@ -36,6 +36,7 @@ class Flat extends Model
     public function rooms(): HasMany      { return $this->hasMany(Room::class); }
     public function leases(): HasMany     { return $this->hasMany(Lease::class); }
     public function assets(): HasMany     { return $this->hasMany(RoomAsset::class); }
+    public function meters(): HasMany     { return $this->hasMany(UtilityMeter::class); }
 
     public function activeLease()
     {

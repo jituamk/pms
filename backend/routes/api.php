@@ -10,7 +10,12 @@ use App\Http\Controllers\Api\InspectionController;
 use App\Http\Controllers\Api\LeaseController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\RentPolicyController;
+use App\Http\Controllers\Api\SmsInboxController;
 use App\Http\Controllers\Api\TenantController;
+use App\Http\Controllers\Api\UtilityBillController;
+use App\Http\Controllers\Api\UtilityMeterController;
+use App\Http\Controllers\Api\UtilityRateController;
+use App\Http\Controllers\Api\UtilityReadingController;
 use Illuminate\Support\Facades\Route;
 
 /* ---------- Public auth ---------- */
@@ -83,4 +88,37 @@ Route::middleware(['auth:sanctum', 'audit'])->group(function () {
         ->middleware('role:owner,delegate,super_admin');
     Route::post  ('inspections/{inspection}/finalize',      [InspectionController::class, 'finalize'])
         ->middleware('role:owner,delegate,super_admin');
+
+    /* ---------- Utility rates (per building) ---------- */
+    Route::middleware('role:owner,delegate,accountant,super_admin')->group(function () {
+        Route::apiResource('utility-rates', UtilityRateController::class)
+            ->parameters(['utility-rates' => 'utilityRate']);
+        Route::apiResource('utility-meters', UtilityMeterController::class)
+            ->parameters(['utility-meters' => 'utilityMeter'])
+            ->except(['show']);
+    });
+
+    /* ---------- Utility readings (caretaker can record) ---------- */
+    Route::get   ('utility-readings',                       [UtilityReadingController::class, 'index']);
+    Route::post  ('utility-readings',                       [UtilityReadingController::class, 'store'])
+        ->middleware('role:owner,delegate,accountant,caretaker,super_admin');
+    Route::get   ('utility-readings/{utilityReading}',      [UtilityReadingController::class, 'show']);
+    Route::delete('utility-readings/{utilityReading}',      [UtilityReadingController::class, 'destroy']);
+
+    /* ---------- Unified bills (tenants see own; owner-staff see all) ---------- */
+    Route::get ('bills',                                    [UtilityBillController::class, 'index']);
+    Route::get ('bills/{bill}',                             [UtilityBillController::class, 'show']);
+    Route::post('leases/{lease}/bills/generate',            [UtilityBillController::class, 'generateForLease'])
+        ->middleware('role:owner,delegate,accountant,super_admin');
+    Route::post('bills/generate',                           [UtilityBillController::class, 'generateForOwner'])
+        ->middleware('role:owner,delegate,accountant,super_admin');
+
+    /* ---------- SMS inbox (mobile-banking auto-verify) ---------- */
+    Route::middleware('role:owner,delegate,super_admin')->group(function () {
+        Route::get   ('sms-inbox',              [SmsInboxController::class, 'index']);
+        Route::post  ('sms-inbox',              [SmsInboxController::class, 'store']);
+        Route::post  ('sms-inbox/{sms}/match',  [SmsInboxController::class, 'match']);
+        Route::post  ('sms-inbox/{sms}/ignore', [SmsInboxController::class, 'ignore']);
+        Route::delete('sms-inbox/{sms}',        [SmsInboxController::class, 'destroy']);
+    });
 });

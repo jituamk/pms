@@ -124,11 +124,40 @@ function PendingAckBanner() {
 }
 
 function TenantDashboard({ data }: { data: unknown }) {
-  const d = data as { tenant: { full_name: string }; lease?: { monthly_rent: string; start_date: string; flat: { flat_number: string; building: { name: string } } }; payments: Payment[] };
+  const d = data as {
+    tenant: { full_name: string };
+    lease?: { monthly_rent: string; start_date: string; flat: { flat_number: string; building: { name: string } } };
+    payments: Payment[];
+    outstanding_bills?: { id: number; invoice_number: string; billing_month: string; due_date: string; balance_amount: string; status: string }[];
+    total_due?: number;
+  };
+  const totalDue = d.total_due ?? 0;
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">Hello, {d.tenant.full_name}</h1>
       <PendingAckBanner />
+      {totalDue > 0 && (
+        <Card className="p-4 border-amber-300 bg-amber-50">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="text-sm text-amber-900">You have {(d.outstanding_bills ?? []).length} outstanding bill(s)</div>
+              <div className="text-2xl font-bold text-amber-900">{formatBDT(totalDue)} due</div>
+            </div>
+            <div className="flex gap-2">
+              <Link href="/bills" className="text-sm rounded-md bg-amber-600 text-white px-4 py-2">View bills</Link>
+              <Link href="/payments" className="text-sm rounded-md bg-brand-600 text-white px-4 py-2">Pay now</Link>
+            </div>
+          </div>
+          <ul className="mt-3 divide-y text-sm">
+            {(d.outstanding_bills ?? []).slice(0, 3).map((b) => (
+              <li key={b.id} className="py-2 flex justify-between">
+                <Link href={`/bills/${b.id}`} className="text-brand-700 hover:underline">{b.invoice_number}</Link>
+                <span>Due {formatDate(b.due_date)} · <span className="font-medium">{formatBDT(b.balance_amount)}</span></span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
       {d.lease ? (
         <Card className="p-4">
           <h2 className="font-semibold mb-2">Your lease</h2>
